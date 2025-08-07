@@ -1,7 +1,7 @@
 // src/pages/LoginPage.js
 
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
@@ -19,7 +19,8 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      // --- CAMBIO 2: URL relativa ---
+      const response = await axios.post('/auth/login', {
         email,
         password,
       });
@@ -60,7 +61,7 @@ const LoginPage = () => {
             autoComplete="email"
             autoFocus
             value={email}
-            onChange={(e) => setEmail(e.target.value)} // <--- CORREGIDO
+            onChange={(e) => setEmail(e.target.value)}
           />
           <TextField
             margin="normal"

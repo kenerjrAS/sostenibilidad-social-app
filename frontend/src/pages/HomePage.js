@@ -1,9 +1,9 @@
 // src/pages/HomePage.js
 
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada de Axios
 import { Link as RouterLink } from 'react-router-dom';
-import MapComponent from '../components/MapComponent'; // Importamos el mapa
+import MapComponent from '../components/MapComponent';
 
 import { 
   Grid, Card, CardContent, CardActionArea, Typography, Box, 
@@ -23,7 +23,8 @@ const HomePage = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get('http://localhost:5000/api/items');
+      // --- CAMBIO 2: La URL ahora es relativa a la baseURL ---
+      const response = await axios.get('/items'); 
       setItems(response.data);
     } catch (err) {
       setError('No se pudieron cargar los artículos.');
@@ -37,11 +38,12 @@ const HomePage = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get('http://localhost:5000/api/items/search/nearby', {
+      // --- CAMBIO 2: La URL ahora es relativa a la baseURL ---
+      const response = await axios.get('/items/search/nearby', { 
         params: {
           lat: location.latitude,
           lon: location.longitude,
-          dist: 10, // Radio de búsqueda en KM
+          dist: 10,
         },
       });
       setItems(response.data);

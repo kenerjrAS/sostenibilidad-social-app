@@ -1,15 +1,15 @@
 // src/pages/ProfilePage.js
 import React, { useState, useEffect } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext'; // 1. Importamos el hook de autenticación
+import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
+import { useAuth } from '../context/AuthContext';
 
-// Importaciones de MUI (añadimos Button)
+// Importaciones de MUI
 import { Box, Typography, CircularProgress, Alert, Grid, Card, CardContent, CardActionArea, CardMedia, Button } from '@mui/material';
 
 const ProfilePage = () => {
   const { id } = useParams();
-  const { user } = useAuth(); // 2. Obtenemos el usuario logueado del contexto
+  const { user } = useAuth();
 
   const [profile, setProfile] = useState(null);
   const [items, setItems] = useState([]);
@@ -19,8 +19,9 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const profilePromise = axios.get(`http://localhost:5000/api/profiles/${id}`);
-        const itemsPromise = axios.get(`http://localhost:5000/api/profiles/${id}/items`);
+        // --- CAMBIO 2: URLs relativas ---
+        const profilePromise = axios.get(`/profiles/${id}`);
+        const itemsPromise = axios.get(`/profiles/${id}/items`);
 
         const [profileResponse, itemsResponse] = await Promise.all([profilePromise, itemsPromise]);
 
@@ -49,7 +50,6 @@ const ProfilePage = () => {
     return <Alert severity="error" sx={{ mt: 2 }}>{error || 'Perfil no encontrado.'}</Alert>;
   }
 
-  // 3. Lógica para verificar si el usuario logueado está viendo su propio perfil
   const isOwnProfile = user && user.id === id;
 
   return (
@@ -59,7 +59,6 @@ const ProfilePage = () => {
           Perfil de: {profile.username}
         </Typography>
 
-        {/* --- 4. RENDERIZADO CONDICIONAL DEL BOTÓN DE EDITAR --- */}
         {isOwnProfile && (
           <Button component={RouterLink} to="/profile/edit" variant="contained">
             Editar mi Perfil

@@ -1,27 +1,21 @@
 // src/api/axiosConfig.js
 import axios from 'axios';
 
-// Creamos una instancia de axios
+// Creamos una instancia de axios que usará la variable de entorno
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // La URL base de nuestra API
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api'
 });
 
-// Añadimos un interceptor a la instancia
-// Este código se ejecutará ANTES de cada petición
+// Añadimos el interceptor para el token, que es una excelente práctica
 api.interceptors.request.use(
   (config) => {
-    // Obtenemos el token del localStorage en cada petición
     const token = localStorage.getItem('authToken');
     if (token) {
-      // Si el token existe, lo añadimos a las cabeceras
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    // Manejamos errores principal en la configuración de la petición
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default api;

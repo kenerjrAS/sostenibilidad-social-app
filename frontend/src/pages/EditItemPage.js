@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
 
 // Importaciones de MUI
 import { Button, TextField, Box, Typography, Container, Alert, Link, CssBaseline, CircularProgress } from '@mui/material';
@@ -11,52 +11,45 @@ const EditItemPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Estados para el formulario y la carga
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(true); // Para la carga inicial de datos
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 1. useEffect para obtener los datos actuales del artículo al cargar la página
   useEffect(() => {
     const fetchItemData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/items/${id}`);
-        // Rellenamos el estado del formulario con los datos recibidos del backend
+        // --- CAMBIO 2: URL relativa ---
+        const response = await axios.get(`/items/${id}`);
         setTitle(response.data.title);
-        setDescription(response.data.description || ''); // Usamos '' si la descripción es null o undefined
+        setDescription(response.data.description || '');
       } catch (err) {
         setError('No se pudieron cargar los datos del artículo para editar.');
         console.error('Error al cargar el artículo para editar:', err);
       } finally {
-        setLoading(false); // Dejamos de cargar, ya sea con éxito o con error
+        setLoading(false);
       }
     };
     fetchItemData();
-  }, [id]); // Se ejecuta cada vez que el ID de la URL cambie
+  }, [id]);
 
-  // 2. Función para enviar los datos actualizados al backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      // Hacemos la petición PUT a nuestro backend con los nuevos datos
-      await axios.put(`http://localhost:5000/api/items/${id}`, {
+      // --- CAMBIO 2: URL relativa ---
+      await axios.put(`/items/${id}`, {
         title,
         description,
       });
-
-      // Si es exitoso, redirigimos al usuario a la página de detalles para que vea los cambios
       navigate(`/item/${id}`);
-
     } catch (err) {
       setError('No se pudieron guardar los cambios. Inténtalo de nuevo.');
       console.error('Error al actualizar el artículo:', err);
     }
   };
 
-  // Mostramos un indicador de carga mientras se obtienen los datos del artículo
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -103,7 +96,7 @@ const EditItemPage = () => {
             type="submit"
             fullWidth
             variant="contained"
-            color="primary" // Usamos el color primario del tema
+            color="primary"
             sx={{ mt: 3, mb: 2 }}
           >
             Guardar Cambios

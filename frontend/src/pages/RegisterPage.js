@@ -1,6 +1,6 @@
 // src/pages/RegisterPage.js
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../api/axiosConfig'; // <-- Usando la instancia configurada
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
 // Importamos los componentes de MUI
@@ -18,16 +18,20 @@ const RegisterPage = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    // ... la lógica de handleSubmit se mantiene igual ...
     try {
-        const response = await axios.post('http://localhost:5000/api/auth/register', { username, email, password });
+        // La URL es ahora relativa
+        const response = await axios.post('/auth/register', { 
+          username, 
+          email, 
+          password,
+        });
         setSuccess(response.data.message + " Redirigiendo a Login...");
         setTimeout(() => {
             navigate('/login');
-        }, 2000); // Esperamos 2 segundos antes de redirigir
+        }, 2000);
     } catch (err) {
-        if (err.response) {
-            setError(err.response.data.error || 'Error desconocido.');
+        if (err.response && err.response.data && err.response.data.error) {
+            setError(err.response.data.error);
         } else {
             setError('No se pudo conectar con el servidor.');
         }
@@ -42,7 +46,6 @@ const RegisterPage = () => {
           Crear una Cuenta
         </Typography>
         
-        {/* Si hay un mensaje de éxito, lo mostramos y ocultamos el formulario */}
         {success ? (
           <Alert severity="success" sx={{ width: '100%', mt: 3 }}>{success}</Alert>
         ) : (

@@ -1,7 +1,8 @@
-// src/pages/ChatPage.js (VERSIÓN REAL)
+// src/pages/ChatPage.js
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 
@@ -28,7 +29,8 @@ const ChatPage = () => {
       setLoading(true);
       const fetchMessages = async () => {
         try {
-          const response = await axios.get(`http://localhost:5000/api/conversations/${conversationId}/messages`);
+          // --- CAMBIO 2: URL relativa ---
+          const response = await axios.get(`/conversations/${conversationId}/messages`);
           setMessages(response.data);
         } catch (err) {
           console.error("Error al cargar mensajes:", err);

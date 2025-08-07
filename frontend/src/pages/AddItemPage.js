@@ -1,7 +1,7 @@
 // src/pages/AddItemPage.js
 
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
@@ -11,16 +11,15 @@ import { Button, TextField, Box, Typography, Container, Alert, Link, CssBaseline
 const AddItemPage = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [imageFile, setImageFile] = useState(null); // <-- Estado para el archivo de imagen
+  const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false); // Estado para el proceso de envío
+  const [loading, setLoading] = useState(false);
 
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Nueva función para manejar el cambio en el input de archivo
   const handleFileChange = (e) => {
-    setImageFile(e.target.files[0]); // Guardamos el primer archivo seleccionado
+    setImageFile(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -35,35 +34,33 @@ const AddItemPage = () => {
     }
 
     try {
-      // PASO 1: Crear el artículo (solo texto)
-      const itemResponse = await axios.post('http://localhost:5000/api/items', {
+      // --- CAMBIO 2: URL relativa ---
+      const itemResponse = await axios.post('/items', {
         title,
         description,
       });
 
       const newItemId = itemResponse.data.id;
 
-      // PASO 2: Si el usuario seleccionó una imagen, la subimos
       if (imageFile) {
         const formData = new FormData();
-        formData.append('image', imageFile); // La clave 'image' debe coincidir con el backend
+        formData.append('image', imageFile);
 
-        // Hacemos la petición de subida al endpoint de upload
-        await axios.post(`http://localhost:5000/api/upload/item/${newItemId}`, formData, {
+        // --- CAMBIO 2: URL relativa ---
+        await axios.post(`/upload/item/${newItemId}`, formData, {
           headers: {
-            'Content-Type': 'multipart/form-data', // Cabecera especial para archivos
+            'Content-Type': 'multipart/form-data',
           },
         });
       }
       
-      // Si todo va bien, redirigimos al inicio
       navigate('/');
 
     } catch (err) {
       console.error('Error al crear el artículo:', err);
       setError('Ocurrió un error inesperado al crear el artículo.');
     } finally {
-      setLoading(false); // Dejamos de cargar, ya sea con éxito o con error
+      setLoading(false);
     }
   };
 
@@ -86,7 +83,6 @@ const AddItemPage = () => {
             onChange={(e) => setDescription(e.target.value)}
           />
 
-          {/* --- NUEVO INPUT PARA SUBIR IMAGEN --- */}
           <Button variant="outlined" component="label" fullWidth sx={{ mt: 2 }}>
             Seleccionar Imagen
             <input type="file" hidden onChange={handleFileChange} accept="image/png, image/jpeg" />

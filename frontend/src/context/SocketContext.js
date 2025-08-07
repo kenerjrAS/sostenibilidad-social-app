@@ -1,7 +1,7 @@
 // src/context/SocketContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import io from 'socket.io-client';
-import { useAuth } from './AuthContext'; // Usaremos el AuthContext para saber si estamos logueados
+import { useAuth } from './AuthContext';
 
 const SocketContext = createContext();
 
@@ -11,27 +11,31 @@ export const useSocket = () => {
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
-  const { isAuthenticated } = useAuth(); // Obtenemos el estado de autenticación
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     let newSocket;
 
-    // Solo nos conectamos al socket si el usuario está autenticado
     if (isAuthenticated) {
-      // Creamos la conexión al servidor de backend
-      newSocket = io('http://localhost:5000');
+      // --- CAMBIO REALIZADO AQUÍ ---
+      // Obtenemos la URL base de la API de nuestras variables de entorno.
+      // Le quitamos el '/api' al final, ya que socket.io se conecta a la raíz del servidor.
+      const socketUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
+
+      // Creamos la conexión a la URL correcta (sea de producción o local)
+      newSocket = io(socketUrl);
       setSocket(newSocket);
-      console.log('🔌 Socket.IO: Conectado al servidor.');
+      console.log(`🔌 Socket.IO: Conectado al servidor en ${socketUrl}`);
+      // ----------------------------
     }
 
-    // Función de limpieza: se ejecuta cuando el componente se desmonta o el usuario hace logout
     return () => {
       if (newSocket) {
         newSocket.disconnect();
         console.log('🔌 Socket.IO: Desconectado del servidor.');
       }
     };
-  }, [isAuthenticated]); // Este efecto se volverá a ejecutar cada vez que cambie 'isAuthenticated'
+  }, [isAuthenticated]);
 
   const value = {
     socket,

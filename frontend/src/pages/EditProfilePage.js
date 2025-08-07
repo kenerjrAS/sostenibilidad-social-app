@@ -1,7 +1,7 @@
 // src/pages/EditProfilePage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
 import { useAuth } from '../context/AuthContext';
 
 // Importaciones de MUI
@@ -9,23 +9,22 @@ import { Button, TextField, Box, Typography, Container, Alert, Link, CssBaseline
 
 const EditProfilePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth(); // Obtenemos el usuario actual del contexto
+  const { user } = useAuth();
 
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // useEffect para cargar los datos del perfil actual cuando la página carga
   useEffect(() => {
     if (!user) {
-      // Si por alguna razón no hay usuario, redirigimos a login
       navigate('/login');
       return;
     }
 
     const fetchProfile = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/profiles/${user.id}`);
+        // --- CAMBIO 2: URL relativa ---
+        const response = await axios.get(`/profiles/${user.id}`);
         setUsername(response.data.username);
       } catch (err) {
         setError('No se pudieron cargar los datos de tu perfil.');
@@ -37,20 +36,16 @@ const EditProfilePage = () => {
     fetchProfile();
   }, [user, navigate]);
 
-  // Función para enviar los datos actualizados al backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      // Usamos nuestro endpoint seguro PUT /api/profiles/me
-      await axios.put('http://localhost:5000/api/profiles/me', {
+      // --- CAMBIO 2: URL relativa ---
+      await axios.put('/profiles/me', {
         username,
       });
-
-      // Si es exitoso, redirigimos al perfil del usuario
       navigate(`/profile/${user.id}`);
-
     } catch (err) {
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error);
@@ -100,9 +95,10 @@ const EditProfilePage = () => {
           </Button>
 
           <Box textAlign="center">
-            <Link component={RouterLink} to={`/profile/${user.id}`} variant="body2">
+            {/* Aseguramos que user.id exista antes de renderizar el Link */}
+            {user && <Link component={RouterLink} to={`/profile/${user.id}`} variant="body2">
               Cancelar
-            </Link>
+            </Link>}
           </Box>
         </Box>
       </Box>

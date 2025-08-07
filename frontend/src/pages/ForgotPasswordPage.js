@@ -1,8 +1,11 @@
 // src/pages/ForgotPasswordPage.js
 
 import React, { useState } from 'react';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
+import { Link as RouterLink } from 'react-router-dom';
+
+// Importaciones de MUI
+import { Button, TextField, Box, Typography, Container, Alert, Link, CssBaseline } from '@mui/material';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -14,7 +17,8 @@ const ForgotPasswordPage = () => {
     setMessage('');
     setError('');
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/forgot-password', {
+      // --- CAMBIO 2: URL relativa ---
+      const response = await axios.post('/auth/forgot-password', {
         email,
       });
       setMessage(response.data.message);
@@ -28,27 +32,61 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="auth-container"> {/* <--- CAMBIO REALIZADO AQUÍ --- */}
-      <h2>Restablecer Contraseña</h2>
-      <p>Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.</p>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Enviar Enlace</button>
-      </form>
-      {message && <p style={{ color: 'green', marginTop: '15px' }}>{message}</p>}
-      {error && <p style={{ color: 'red', marginTop: '15px' }}>{error}</p>}
-      <div style={{ marginTop: '20px' }}>
-        <Link to="/login">Volver a Iniciar Sesión</Link>
-      </div>
-    </div>
+    <Container component="main" maxWidth="xs">
+      <CssBaseline />
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Typography component="h1" variant="h5">
+          Restablecer Contraseña
+        </Typography>
+        <Typography variant="body1" sx={{ mt: 1, mb: 2, textAlign: 'center' }}>
+          Introduce tu email y te enviaremos un enlace para crear una nueva contraseña.
+        </Typography>
+        
+        {/* Mostramos el mensaje de éxito aquí arriba si existe */}
+        {message ? (
+          <Alert severity="success" sx={{ width: '100%', mt: 2 }}>{message}</Alert>
+        ) : (
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%' }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Correo Electrónico"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            
+            {error && <Alert severity="error" sx={{ width: '100%', mt: 2 }}>{error}</Alert>}
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Enviar Enlace de Restablecimiento
+            </Button>
+          </Box>
+        )}
+        
+        <Box textAlign="center" sx={{ mt: 2 }}>
+          <Link component={RouterLink} to="/login" variant="body2">
+            Volver a Iniciar Sesión
+          </Link>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 

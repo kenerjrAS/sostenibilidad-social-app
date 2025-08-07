@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
 import { useAuth } from '../context/AuthContext';
 
 // Importaciones de MUI
@@ -24,7 +24,8 @@ const ItemDetailsPage = () => {
   useEffect(() => {
     const fetchItem = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/items/${id}`);
+            // --- CAMBIO 2: URL relativa ---
+            const response = await axios.get(`/items/${id}`);
             setItem(response.data);
         } catch (err) {
             setError('No se pudo encontrar el artículo.');
@@ -38,7 +39,8 @@ const ItemDetailsPage = () => {
   const handleDelete = async () => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este artículo?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/items/${id}`);
+        // --- CAMBIO 2: URL relativa ---
+        await axios.delete(`/items/${id}`);
         navigate('/');
       } catch (err) {
         setError('No se pudo eliminar el artículo. Inténtalo de nuevo.');
@@ -47,15 +49,13 @@ const ItemDetailsPage = () => {
     }
   };
   
-  // --- FUNCIÓN RESTAURADA A LA VERSIÓN REAL ---
   const handleContactOwner = async () => {
     try {
-      // Usamos nuestro endpoint para crear/obtener la conversación
-      const response = await axios.post('http://localhost:5000/api/conversations', {
+      // --- CAMBIO 2: URL relativa ---
+      const response = await axios.post('/conversations', {
         otherUserId: item.owner_id,
         itemId: item.id,
       });
-      // Redirigimos ala página de chat con el ID de la conversación
       navigate(`/chat/${response.data.id}`);
     } catch (error) {
       console.error("Error al iniciar la conversación:", error);
