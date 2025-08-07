@@ -1,7 +1,7 @@
 // src/context/AuthContext.js
 
+// Ya no necesitamos 'axios' aquí
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
 
 const AuthContext = createContext();
 
@@ -18,8 +18,6 @@ export const AuthProvider = ({ children }) => {
       if (storedToken && storedUser) {
         setUser(JSON.parse(storedUser));
         setToken(storedToken);
-        // La cabecera de axios ahora se establece automáticamente por el interceptor
-        // axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
       }
       setLoading(false);
     };
@@ -32,8 +30,6 @@ export const AuthProvider = ({ children }) => {
     setToken(sessionData.access_token);
     localStorage.setItem('authToken', sessionData.access_token);
     localStorage.setItem('authUser', JSON.stringify(userData));
-    // La cabecera de axios ahora se establece automáticamente por el interceptor
-    // axios.defaults.headers.common['Authorization'] = `Bearer ${sessionData.access_token}`;
   };
 
   const logoutAction = () => {
@@ -41,8 +37,6 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
-    // La cabecera se eliminará de las futuras peticiones porque el token ya no está en localStorage
-    // delete axios.defaults.headers.common['Authorization'];
   };
 
   const value = {
