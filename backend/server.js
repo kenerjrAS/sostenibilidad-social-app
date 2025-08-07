@@ -24,7 +24,7 @@ const server = http.createServer(app);
 // --- 3. CONFIGURACIÓN DE CORS PARA PRODUCCIÓN ---
 const allowedOrigins = [
   'http://localhost:3000', // Para seguir probando en tu máquina local
-  'https://sostenibilidad-social-app.pages.dev' // ¡TU URL DE FRONTEND EN PRODUCCIÓN!
+  'https://sostenibilidad-social-app.pages.dev', // ¡TU URL DE FRONTEND EN PRODUCCIÓN! https://sostenibilidad-social-app.pages.dev
 ];
 
 const corsOptions = {
