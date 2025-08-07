@@ -1,4 +1,4 @@
-// server.js (VERSIÓN MONOLÍTICA CON CORS FINAL)
+// server.js (VERSIÓN MONOLÍTICA CON CORS FINAL Y ROBUSTA)
 
 const express = require('express');
 const http = require('http');
@@ -21,18 +21,21 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// --- 3. CONFIGURACIÓN DE CORS PARA PRODUCCIÓN (VERSIÓN FINAL) ---
+// --- 3. CONFIGURACIÓN DE CORS FINAL Y A PRUEBA DE FALLOS ---
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://sostenibilidad-social-app.pages.dev' // URL corregida sin la barra al final
+  'https://sostenibilidad-social-app.pages.dev'
 ];
 
-const corsOptions = {
-  origin: allowedOrigins
-};
+app.use(cors({
+  origin: allowedOrigins,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true, // Permite cookies y cabeceras de autorización
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
 
 // --- 4. MIDDLEWARES GLOBALES ---
-app.use(cors(corsOptions)); // Usamos la configuración explícita y robusta de CORS
 app.use(express.json());
 
 
@@ -40,34 +43,41 @@ app.use(express.json());
 const io = new Server(server, {
   cors: { 
     origin: allowedOrigins,
-    methods: ["GET", "POST"] 
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
 
-// --- 6. DEFINIMOS TODAS LAS RUTAS AQUÍ MISMO ---
+// --- 6. RUTA RAÍZ DE BIENVENIDA ---
+app.get('/', (req, res) => {
+  res.send('¡Bienvenido a la API de Sostenibilidad Social! El servidor está funcionando.');
+});
+
+
+// --- 7. DEFINIMOS TODAS LAS RUTAS DE LA API ---
 console.log("==> Registrando rutas de la API de forma monolítica...");
 
-// --- Auth Routes ---
+// Auth Routes
 app.post('/api/auth/register', authController.registerUser);
 app.post('/api/auth/login', authController.loginUser);
 app.post('/api/auth/forgot-password', authController.forgotPassword);
 
-// --- Profile Routes ---
+// Profile Routes
 app.put('/api/profiles/me', protect, profileController.updateMyProfile);
 app.get('/api/profiles/:id', profileController.getProfileById);
 app.get('/api/profiles/:id/items', profileController.getItemsByUserId);
 
-// --- Conversation Routes ---
+// Conversation Routes
 app.post('/api/conversations', protect, conversationController.getOrCreateConversation);
 app.get('/api/conversations/:conversationId/messages', protect, conversationController.getMessagesByConversationId);
 
-// --- Upload Routes (con configuración de multer) ---
+// Upload Routes
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 app.post('/api/upload/item/:itemId', protect, upload.single('image'), uploadController.uploadItemImage);
 
-// --- Item Routes ---
+// Item Routes
 app.get('/api/items/search/nearby', itemController.searchNearbyItems);
 app.post('/api/items', protect, itemController.createItem);
 app.get('/api/items', itemController.getItems);
@@ -78,7 +88,7 @@ app.delete('/api/items/:id', protect, itemController.deleteItem);
 console.log("==> Todas las rutas han sido registradas.");
 
 
-// --- 7. LÓGICA DE SOCKET.IO ---
+// --- 8. LÓGICA DE SOCKET.IO ---
 io.on('connection', (socket) => {
   console.log(`✅ Cliente conectado vía WebSocket: ${socket.id}`);
   
@@ -108,7 +118,7 @@ io.on('connection', (socket) => {
 });
 
 
-// --- 8. ARRANQUE DEL SERVIDOR ---
+// --- 9. ARRANQUE DEL SERVIDOR ---
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Servidor monolítico corriendo en el puerto ${PORT}`);
