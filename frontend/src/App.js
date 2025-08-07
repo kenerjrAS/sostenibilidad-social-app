@@ -34,21 +34,57 @@ function App() {
         <AppBar position="static">
           <Container maxWidth="lg">
             <Toolbar disableGutters>
-              <Typography variant="h6" component={RouterLink} to="/" sx={{ flexGrow: 1, color: 'inherit', textDecoration: 'none' }}>
-                Sostenibilidad Social
-              </Typography>
+              
+              {/* --- LOGO Y TÍTULO DE LA APP --- */}
+              <Box 
+                component={RouterLink} 
+                to="/" 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  textDecoration: 'none', 
+                  color: 'inherit' 
+                }}
+              >
+                {/* Asegúrate de que tu logo esté en 'public/images/logo.png' */}
+                <img 
+                  src="/images/logo.png" 
+                  alt="NexoK Logo" 
+                  style={{ height: '32px', marginRight: '12px' }} 
+                />
+                <Typography
+                  variant="h6"
+                  noWrap
+                  component="div" // No es un link por sí mismo, el Box ya lo es
+                >
+                  NexoK
+                </Typography>
+              </Box>
+
+              {/* Elemento invisible para empujar los botones a la derecha */}
+              <Box sx={{ flexGrow: 1 }} />
+              
+              {/* Lógica condicional para mostrar botones */}
               {isAuthenticated ? (
                 <Box>
-                  <Button color="inherit" component={RouterLink} to="/add-item">Añadir Artículo</Button>
+                  <Button color="inherit" component={RouterLink} to="/add-item">
+                    Añadir Artículo
+                  </Button>
                   <Typography variant="body1" component="span" sx={{ mx: 2 }}>
                     ¡Hola, {user ? user.email.split('@')[0] : ''}!
                   </Typography>
-                  <Button color="inherit" onClick={logout} variant="outlined">Logout</Button>
+                  <Button color="inherit" onClick={logout} variant="outlined">
+                    Logout
+                  </Button>
                 </Box>
               ) : (
                 <Box>
-                  <Button color="inherit" component={RouterLink} to="/login">Login</Button>
-                  <Button color="inherit" component={RouterLink} to="/register">Registro</Button>
+                  <Button color="inherit" component={RouterLink} to="/login">
+                    Login
+                  </Button>
+                  <Button color="inherit" component={RouterLink} to="/register">
+                    Registro
+                  </Button>
                 </Box>
               )}
             </Toolbar>
