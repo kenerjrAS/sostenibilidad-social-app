@@ -1,4 +1,4 @@
-// server.js (VERSIÓN MONOLÍTICA CON CORS FINAL Y ROBUSTA)
+// server.js (VERSIÓN MONOLÍTICA CON LA RUTA DE UPLOAD DESACTIVADA PARA DEPURAR)
 
 const express = require('express');
 const http = require('http');
@@ -30,7 +30,7 @@ const allowedOrigins = [
 app.use(cors({
   origin: allowedOrigins,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true, // Permite cookies y cabeceras de autorización
+  credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
@@ -72,10 +72,13 @@ app.get('/api/profiles/:id/items', profileController.getItemsByUserId);
 app.post('/api/conversations', protect, conversationController.getOrCreateConversation);
 app.get('/api/conversations/:conversationId/messages', protect, conversationController.getMessagesByConversationId);
 
+// --- CAMBIO REALIZADO AQUÍ ---
 // Upload Routes
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-app.post('/api/upload/item/:itemId', protect, upload.single('image'), uploadController.uploadItemImage);
+// Se comenta la siguiente línea porque está causando un error fatal en el despliegue.
+// Esto desactivará temporalmente la subida de imágenes, pero permitirá que el resto de la API funcione.
+// app.post('/api/upload/item/:itemId', protect, upload.single('image'), uploadController.uploadItemImage);
 
 // Item Routes
 app.get('/api/items/search/nearby', itemController.searchNearbyItems);
