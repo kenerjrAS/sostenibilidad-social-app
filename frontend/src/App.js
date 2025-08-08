@@ -34,24 +34,6 @@ function App() {
         <AppBar position="static">
           <Container maxWidth="lg">
             <Toolbar disableGutters>
-              
-              {/* --- LOGO Y TÍTULO DE LA APP --- */}
-              <Box 
-                component={RouterLink} 
-                to="/" 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  textDecoration: 'none', 
-                  color: 'inherit' 
-                }}
-              >
-                {/* Asegúrate de que tu logo esté en 'public/images/logo.png' */}
-                <img 
-                  src="" 
-                  alt="" 
-                  style={{ height: '32px', marginRight: '12px' }} 
-                />
                 <Typography
                   variant="h6"
                   noWrap
