@@ -48,8 +48,8 @@ function App() {
               >
                 {/* Asegúrate de que tu logo esté en 'public/images/logo.png' */}
                 <img 
-                  src="/images/" 
-                  alt="NexoK Logo" 
+                  src="" 
+                  alt="" 
                   style={{ height: '32px', marginRight: '12px' }} 
                 />
                 <Typography
