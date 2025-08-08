@@ -2,16 +2,14 @@
 const supabase = require('../config/supabaseClient');
 
 const uploadItemImage = async (req, res) => {
-  // 1. Verificamos que se haya subido un archivo
   if (!req.file) {
     return res.status(400).json({ error: 'No se subió ningún archivo.' });
   }
 
   const { itemId } = req.params;
-  const { id: userId } = req.user; // Obtenemos el ID del usuario del middleware
+  const { id: userId } = req.user;
 
   try {
-    // 2. Verificamos que el usuario sea el dueño del artículo
     const { data: item, error: findError } = await supabase
       .from('items')
       .select('owner_id')
@@ -25,7 +23,6 @@ const uploadItemImage = async (req, res) => {
       return res.status(403).json({ error: 'No tienes permiso para subir imágenes a este artículo.' });
     }
 
-    // 3. Subimos el archivo al Storage de Supabase
     const fileName = `${userId}/${itemId}-${Date.now()}`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('item-images')
@@ -35,12 +32,10 @@ const uploadItemImage = async (req, res) => {
 
     if (uploadError) throw uploadError;
 
-    // 4. Obtenemos la URL pública de la imagen
     const { data: { publicUrl } } = supabase.storage
       .from('item-images')
       .getPublicUrl(fileName);
 
-    // 5. Actualizamos la tabla 'items' con la nueva URL
     const { data: updatedItem, error: updateError } = await supabase
       .from('items')
       .update({ images: [publicUrl] })
@@ -57,7 +52,6 @@ const uploadItemImage = async (req, res) => {
   }
 };
 
-// --- LA EXPORTACIÓN DEBE SER ASÍ ---
 module.exports = {
   uploadItemImage,
 };
