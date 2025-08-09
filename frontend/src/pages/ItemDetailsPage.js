@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
-import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
+import axios from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
 
 // Importaciones de MUI
@@ -24,7 +24,6 @@ const ItemDetailsPage = () => {
   useEffect(() => {
     const fetchItem = async () => {
         try {
-            // --- CAMBIO 2: URL relativa ---
             const response = await axios.get(`/items/${id}`);
             setItem(response.data);
         } catch (err) {
@@ -39,7 +38,6 @@ const ItemDetailsPage = () => {
   const handleDelete = async () => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este artículo?')) {
       try {
-        // --- CAMBIO 2: URL relativa ---
         await axios.delete(`/items/${id}`);
         navigate('/');
       } catch (err) {
@@ -49,18 +47,21 @@ const ItemDetailsPage = () => {
     }
   };
   
-  const handleContactOwner = async () => {
-    try {
-      // --- CAMBIO 2: URL relativa ---
-      const response = await axios.post('/conversations', {
-        otherUserId: item.owner_id,
-        itemId: item.id,
-      });
-      navigate(`/chat/${response.data.id}`);
-    } catch (error) {
-      console.error("Error al iniciar la conversación:", error);
-      setError("No se pudo iniciar el chat. Inténtalo de nuevo.");
+  // --- FUNCIÓN DE CONTACTO CON NAVEGACIÓN INSTANTÁNEA ---
+  const handleContactOwner = () => {
+    if (!isAuthenticated || !user || !item || !item.owner_id) {
+        setError("Debes iniciar sesión para contactar al dueño.");
+        return;
     }
+
+    // Navegamos a nuestra página de carga intermedia, pasándole los datos
+    // que necesitará para crear la conversación.
+    navigate('/chat/new', { 
+      state: { 
+        otherUserId: item.owner_id, 
+        itemId: item.id 
+      } 
+    });
   };
 
   if (loading) {
