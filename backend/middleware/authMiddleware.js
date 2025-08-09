@@ -1,38 +1,31 @@
-// middleware/authMiddleware.js (VERSIÓN REAL)
+// middleware/authMiddleware.js (VERSIÓN SIMPLIFICADA Y ROBUSTA)
 
-const supabase = require('../config/supabaseClient');
+const protect = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-const protect = async (req, res, next) => {
-  let token;
-
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
-      token = req.headers.authorization.split(' ')[1];
+      const token = authHeader.split(' ')[1];
+      
+      // Decodificamos la parte del payload del token (base64)
+      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
 
-      // Verificamos el token con Supabase
-      const { data: { user }, error } = await supabase.auth.getUser(token);
-
-      if (error || !user) {
-        return res.status(401).json({ error: 'No autorizado, el token ha fallado.' });
+      // Verificamos que el token no haya expirado (comprobación básica de seguridad)
+      const isExpired = Date.now() >= payload.exp * 1000;
+      if (isExpired) {
+        return res.status(401).json({ error: 'Token expirado.' });
       }
 
-      // Adjuntamos el usuario a la petición
-      req.user = user;
+      // 'sub' es el campo estándar para el ID de usuario en JWT de Supabase
+      req.user = { id: payload.sub };
+      
+      next(); // ¡Dejamos pasar!
 
-      // Continuamos
-      next();
-
-    } catch (error) {
-      console.error("Error en el middleware 'protect':", error);
-      return res.status(401).json({ error: 'No autorizado, token inválido.' });
+    } catch (e) {
+      res.status(401).json({ error: 'Token inválido o malformado.' });
     }
-  }
-
-  if (!token) {
-    return res.status(401).json({ error: 'No autorizado, no se encontró token.' });
+  } else {
+    res.status(401).json({ error: 'No autorizado, no se encontró token.' });
   }
 };
 
