@@ -1,14 +1,14 @@
 // src/pages/HomePage.js
 
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada de Axios
+import axios from '../api/axiosConfig'; // <-- ¡IMPORTANTE! Usando la instancia configurada
 import { Link as RouterLink } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
 
 import { 
   Grid, Card, CardContent, CardActionArea, Typography, Box, 
   CircularProgress, CardHeader, Avatar, CardMedia, 
-  Switch, FormControlLabel, Alert 
+  Switch, FormControlLabel, Alert, Tabs, Tab 
 } from '@mui/material';
 
 const HomePage = () => {
@@ -16,15 +16,18 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
+  const [selectedCategory, setSelectedCategory] = useState('todos');
   const [searchNearby, setSearchNearby] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
-  
+
   const fetchAllItems = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      // --- CAMBIO 2: La URL ahora es relativa a la baseURL ---
-      const response = await axios.get('/items'); 
+      // La URL ahora es relativa ("/items")
+      const response = await axios.get('/items', {
+        params: { type: selectedCategory }
+      });
       setItems(response.data);
     } catch (err) {
       setError('No se pudieron cargar los artículos.');
@@ -32,13 +35,13 @@ const HomePage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedCategory]);
 
   const fetchNearbyItems = useCallback(async (location) => {
     setLoading(true);
     setError('');
     try {
-      // --- CAMBIO 2: La URL ahora es relativa a la baseURL ---
+      // La URL ahora es relativa ("/items/search/nearby")
       const response = await axios.get('/items/search/nearby', { 
         params: {
           lat: location.latitude,
@@ -58,7 +61,8 @@ const HomePage = () => {
   useEffect(() => {
     if (searchNearby && userLocation) {
       fetchNearbyItems(userLocation);
-    } else if (!searchNearby) {
+      setSelectedCategory('todos');
+    } else {
       fetchAllItems();
     }
   }, [searchNearby, userLocation, fetchAllItems, fetchNearbyItems]);
@@ -78,6 +82,13 @@ const HomePage = () => {
           setSearchNearby(false);
         }
       );
+    }
+  };
+
+  const handleCategoryChange = (event, newValue) => {
+    setSelectedCategory(newValue);
+    if (searchNearby) {
+      setSearchNearby(false);
     }
   };
 
@@ -101,6 +112,21 @@ const HomePage = () => {
         />
       </Box>
 
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs 
+          value={selectedCategory} 
+          onChange={handleCategoryChange} 
+          aria-label="categorías de artículos"
+          variant="scrollable"
+          scrollButtons="auto"
+        >
+          <Tab label="Todos" value="todos" />
+          <Tab label="Donaciones" value="donacion" />
+          <Tab label="Intercambios" value="intercambio" />
+          <Tab label="Ventas" value="venta" />
+        </Tabs>
+      </Box>
+
       {error && <Alert severity="warning" sx={{ mb: 2 }}>{error}</Alert>}
 
       {searchNearby && userLocation && items.length > 0 && (
@@ -109,7 +135,7 @@ const HomePage = () => {
 
       {items.length === 0 ? (
         <Typography>
-          {searchNearby ? "No se encontraron artículos cerca de ti." : "No hay artículos disponibles en este momento."}
+          {searchNearby ? "No se encontraron artículos cerca de ti." : `No hay artículos disponibles en la categoría "${selectedCategory}".`}
         </Typography>
       ) : (
         <Grid container spacing={3}>
