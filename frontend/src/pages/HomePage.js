@@ -9,7 +9,7 @@ import {
   Grid, Card, CardContent, CardActionArea, Typography, Box, 
   CircularProgress, CardHeader, Avatar, CardMedia, 
   Switch, FormControlLabel, Alert, Tabs, Tab,
-  Popover, TextField, RadioGroup, Radio, FormControl, FormLabel, Button // <-- Button ya estaba, solo verificamos
+  Popover, TextField, RadioGroup, Radio, FormControl, FormLabel, Button, Paper // <-- Paper añadido
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
@@ -115,6 +115,25 @@ const HomePage = () => {
         />
       </Box>
 
+      {/* --- NUEVA SECCIÓN DE BIENVENIDA --- */}
+      <Paper 
+        elevation={2} 
+        sx={{ 
+          padding: { xs: 2, md: 3 }, 
+          marginBottom: 4, 
+          backgroundColor: '#f5f5f5',
+          borderRadius: '12px'
+        }}
+      >
+        <Typography variant="h5" component="h2" gutterBottom>
+          Bienvenido/a a NexoK
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Una comunidad para fomentar la economía circular. Aquí puedes encontrar artículos para <strong>donación</strong>, <strong>intercambio</strong> o <strong>venta</strong>, conectando con personas cerca de ti y dándole una segunda vida a los objetos. ¡Explora, comparte y únete al movimiento!
+        </Typography>
+      </Paper>
+      {/* --------------------------------- */}
+
       <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={selectedCategory} onChange={handleCategoryChange} aria-label="categorías de artículos" variant="scrollable" scrollButtons="auto">
           <Tab label="Todos" value="todos" />
@@ -122,18 +141,15 @@ const HomePage = () => {
           <Tab label="Intercambios" value="intercambio" />
           <Tab label="Ventas" value="venta" />
         </Tabs>
-        
-        {/* --- CAMBIO REALIZADO AQUÍ: DE IconButton a Button --- */}
         <Button 
           onClick={handleFilterClick} 
           startIcon={<FilterListIcon />} 
-          sx={{ ml: 'auto', flexShrink: 0 }} // flexShrink evita que el botón se encoja en pantallas pequeñas
+          sx={{ ml: 'auto', flexShrink: 0 }}
           variant="outlined"
           aria-label="filtros avanzados"
         >
           Filtro
         </Button>
-        {/* --------------------------------------------------- */}
       </Box>
 
       <Popover
