@@ -1,47 +1,62 @@
 // src/pages/HomePage.js
 
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from '../api/axiosConfig'; // <-- ¡IMPORTANTE! Usando la instancia configurada
+import axios from '../api/axiosConfig';
 import { Link as RouterLink } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
 
 import { 
   Grid, Card, CardContent, CardActionArea, Typography, Box, 
   CircularProgress, CardHeader, Avatar, CardMedia, 
-  Switch, FormControlLabel, Alert, Tabs, Tab 
+  Switch, FormControlLabel, Alert, Tabs, Tab,
+  IconButton, Popover, TextField, RadioGroup, Radio, FormControl, FormLabel
 } from '@mui/material';
+import FilterListIcon from '@mui/icons-material/FilterList';
 
 const HomePage = () => {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Cambiado a false para evitar carga inicial innecesaria
   const [error, setError] = useState('');
   
+  // Estados para los filtros
   const [selectedCategory, setSelectedCategory] = useState('todos');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   const [searchNearby, setSearchNearby] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
 
-  const fetchAllItems = useCallback(async () => {
+  // Estados para el Popover (ventana de filtros)
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleFilterClick = (event) => setAnchorEl(event.currentTarget);
+  const handleFilterClose = () => setAnchorEl(null);
+  const open = Boolean(anchorEl);
+
+  // Función para obtener los artículos, ahora depende de todos los filtros
+  const fetchItems = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      // La URL ahora es relativa ("/items")
       const response = await axios.get('/items', {
-        params: { type: selectedCategory }
+        params: { 
+          type: selectedCategory,
+          search: searchTerm,
+          sortBy: sortBy
+        }
       });
       setItems(response.data);
     } catch (err) {
       setError('No se pudieron cargar los artículos.');
-      console.error("Error al obtener todos los artículos:", err);
+      console.error("Error al obtener artículos:", err);
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, searchTerm, sortBy]);
 
   const fetchNearbyItems = useCallback(async (location) => {
     setLoading(true);
     setError('');
     try {
-      // La URL ahora es relativa ("/items/search/nearby")
       const response = await axios.get('/items/search/nearby', { 
         params: {
           lat: location.latitude,
@@ -52,20 +67,23 @@ const HomePage = () => {
       setItems(response.data);
     } catch (err) {
       setError('No se pudieron cargar los artículos cercanos.');
-      console.error("Error al obtener artículos cercanos:", err);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // useEffect principal que decide qué cargar
   useEffect(() => {
     if (searchNearby && userLocation) {
       fetchNearbyItems(userLocation);
+      // Reseteamos otros filtros para evitar confusión
       setSelectedCategory('todos');
+      setSearchTerm('');
+      setSortBy('newest');
     } else {
-      fetchAllItems();
+      fetchItems();
     }
-  }, [searchNearby, userLocation, fetchAllItems, fetchNearbyItems]);
+  }, [searchNearby, userLocation, fetchItems, fetchNearbyItems]);
 
   const handleNearbyToggle = (event) => {
     const isChecked = event.target.checked;
@@ -74,11 +92,10 @@ const HomePage = () => {
     if (isChecked && !userLocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation({ latitude, longitude });
+          setUserLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
         },
         (err) => {
-          setError('No se pudo obtener tu ubicación. Por favor, activa los permisos en tu navegador.');
+          setError('No se pudo obtener tu ubicación.');
           setSearchNearby(false);
         }
       );
@@ -92,14 +109,6 @@ const HomePage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
@@ -112,69 +121,92 @@ const HomePage = () => {
         />
       </Box>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs 
-          value={selectedCategory} 
-          onChange={handleCategoryChange} 
-          aria-label="categorías de artículos"
-          variant="scrollable"
-          scrollButtons="auto"
-        >
+      <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={selectedCategory} onChange={handleCategoryChange} aria-label="categorías de artículos" variant="scrollable" scrollButtons="auto">
           <Tab label="Todos" value="todos" />
           <Tab label="Donaciones" value="donacion" />
           <Tab label="Intercambios" value="intercambio" />
           <Tab label="Ventas" value="venta" />
         </Tabs>
+        <IconButton onClick={handleFilterClick} sx={{ ml: 'auto' }} aria-label="filtros avanzados">
+          <FilterListIcon />
+        </IconButton>
       </Box>
+
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleFilterClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Box sx={{ p: 2, width: { xs: 250, sm: 300 } }}>
+          <Typography variant="h6" gutterBottom>Filtros Avanzados</Typography>
+          <TextField
+            fullWidth
+            label="Buscar por palabra clave..."
+            variant="outlined"
+            size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <FormControl>
+            <FormLabel>Ordenar por</FormLabel>
+            <RadioGroup value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <FormControlLabel value="newest" control={<Radio />} label="Más recientes" />
+              <FormControlLabel value="oldest" control={<Radio />} label="Más antiguos" />
+            </RadioGroup>
+          </FormControl>
+        </Box>
+      </Popover>
 
       {error && <Alert severity="warning" sx={{ mb: 2 }}>{error}</Alert>}
 
-      {searchNearby && userLocation && items.length > 0 && (
-        <MapComponent items={items} userLocation={userLocation} />
-      )}
-
-      {items.length === 0 ? (
-        <Typography>
-          {searchNearby ? "No se encontraron artículos cerca de ti." : `No hay artículos disponibles en la categoría "${selectedCategory}".`}
-        </Typography>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
       ) : (
-        <Grid container spacing={3}>
-          {items.map((item) => {
-            const imageUrl = item.images && item.images.length > 0 
-              ? item.images[0] 
-              : `https://placehold.co/600x400?text=${encodeURIComponent(item.title)}`;
-            
-            return (
-              <Grid item key={item.id} xs={12} sm={6} md={4}>
-                <CardActionArea component={RouterLink} to={`/item/${item.id}`} sx={{ height: '100%' }}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <CardMedia
-                      component="img"
-                      sx={{ height: 150 }}
-                      image={imageUrl}
-                      alt={item.title}
-                    />
-                    <CardHeader
-                      avatar={ <Avatar sx={{ bgcolor: 'primary.main' }}>{item.title ? item.title[0].toUpperCase() : '?'}</Avatar> }
-                      title={ <Typography variant="h6" component="div" noWrap>{item.title}</Typography> }
-                      subheader={`Publicado: ${new Date(item.created_at).toLocaleDateString()}`}
-                    />
-                    <CardContent sx={{ flexGrow: 1, pt: 0 }}>
-                      <Typography variant="body2" color="text.secondary" sx={{
-                          display: '-webkit-box',
-                          overflow: 'hidden',
-                          WebkitBoxOrient: 'vertical',
-                          WebkitLineClamp: 2,
-                        }}>
-                        {item.description || "Sin descripción"}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </CardActionArea>
-              </Grid>
-            );
-          })}
-        </Grid>
+        <>
+          {searchNearby && userLocation && items.length > 0 && (
+            <MapComponent items={items} userLocation={userLocation} />
+          )}
+
+          {items.length === 0 ? (
+            <Typography>
+              No se encontraron artículos que coincidan con tus filtros.
+            </Typography>
+          ) : (
+            <Grid container spacing={3}>
+              {items.map((item) => {
+                const imageUrl = item.images && item.images.length > 0 
+                  ? item.images[0] 
+                  : `https://placehold.co/600x400?text=${encodeURIComponent(item.title)}`;
+                
+                return (
+                  <Grid item key={item.id} xs={12} sm={6} md={4}>
+                    <CardActionArea component={RouterLink} to={`/item/${item.id}`} sx={{ height: '100%' }}>
+                      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <CardMedia component="img" sx={{ height: 150 }} image={imageUrl} alt={item.title} />
+                        <CardHeader
+                          avatar={ <Avatar sx={{ bgcolor: 'primary.main' }}>{item.title ? item.title[0].toUpperCase() : '?'}</Avatar> }
+                          title={ <Typography variant="h6" component="div" noWrap>{item.title}</Typography> }
+                          subheader={`Publicado: ${new Date(item.created_at).toLocaleDateString()}`}
+                        />
+                        <CardContent sx={{ flexGrow: 1, pt: 0 }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ display: '-webkit-box', overflow: 'hidden', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2 }}>
+                            {item.description || "Sin descripción"}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </CardActionArea>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          )}
+        </>
       )}
     </Box>
   );

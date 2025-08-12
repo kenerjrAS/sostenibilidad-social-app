@@ -3,26 +3,41 @@
 const supabase = require('../config/supabaseClient');
 
 //================================================
-// OBTENER TODOS LOS ARTÍCULOS (AHORA CON FILTRO)
+// OBTENER ARTÍCULOS (VERSIÓN CON FILTROS AVANZADOS)
 //================================================
 const getItems = async (req, res) => {
-  // 1. Leemos el nuevo filtro 'type' de la URL (ej: /api/items?type=donacion)
-  const { type } = req.query;
+  // 1. Leemos todos los posibles filtros de la URL
+  const { type, sortBy, search } = req.query;
 
-  console.log(`==> Petición para obtener artículos RECIBIDA. Filtro por tipo: ${type || 'ninguno'}`);
+  console.log(`==> Petición GET /items. Filtros: tipo=${type || 'ninguno'}, ordenar=${sortBy || 'ninguno'}, buscar='${search || 'ninguno'}'`);
   
   try {
-    // 2. Creamos la consulta base a Supabase, sigue siendo la misma
+    // 2. Creamos la consulta base
     let query = supabase
       .from('items')
       .select('*, profiles ( username, location )');
 
-    // 3. Si nos enviaron un filtro 'type' Y no es 'todos', lo añadimos a la consulta
+    // 3. Aplicamos el filtro de TIPO de oferta
     if (type && type !== 'todos') {
       query = query.eq('offer_type', type);
     }
+
+    // 4. Aplicamos el filtro de BÚSQUEDA por texto
+    if (search) {
+      // .or() busca el término en la columna 'title' O en la 'description'
+      // .ilike() es como 'contains' y es case-insensitive (no distingue mayúsculas/minúsculas)
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+
+    // 5. Aplicamos el ORDENAMIENTO
+    if (sortBy === 'oldest') {
+      query = query.order('created_at', { ascending: true });
+    } else {
+      // Por defecto, o si se especifica 'newest', ordenamos por los más nuevos primero
+      query = query.order('created_at', { ascending: false });
+    }
     
-    // 4. Ejecutamos la consulta (que puede o no tener el filtro .eq())
+    // 6. Ejecutamos la consulta final ya construida
     const { data, error } = await query;
 
     if (error) throw error;
@@ -32,31 +47,20 @@ const getItems = async (req, res) => {
   }
 };
 
+
 //================================================
-// CREAR UN NUEVO ARTÍCULO (AHORA CON OFFER_TYPE)
+// CREAR UN NUEVO ARTÍCULO (PROTEGIDO)
 //================================================
 const createItem = async (req, res) => {
-  // 1. Añadimos 'offer_type' a los datos que esperamos recibir
   const { title, description, offer_type } = req.body;
-
-  // 2. Actualizamos la validación
   if (!title || !offer_type) {
     return res.status(400).json({ error: 'El título y el tipo de oferta son obligatorios.' });
   }
-
   try {
     const { data, error } = await supabase
       .from('items')
-      .insert([
-        {
-          title,
-          description,
-          offer_type, // <-- 3. Guardamos el tipo de oferta en la base de datos
-          owner_id: req.user.id, 
-        },
-      ])
+      .insert([{ title, description, offer_type, owner_id: req.user.id }])
       .select();
-
     if (error) {
       console.error("Error de Supabase al insertar:", error);
       throw error;
@@ -67,8 +71,9 @@ const createItem = async (req, res) => {
   }
 };
 
+
 //================================================
-// OBTENER UN ARTÍCULO POR SU ID (SIN CAMBIOS)
+// OBTENER UN ARTÍCULO POR SU ID (CON DATOS DEL DUEÑO)
 //================================================
 const getItemById = async (req, res) => {
   const { id } = req.params;
@@ -88,11 +93,11 @@ const getItemById = async (req, res) => {
 };
 
 //================================================
-// ACTUALIZAR UN ARTÍCULO (SIN CAMBIOS)
+// ACTUALIZAR UN ARTÍCULO (PROTEGIDO)
 //================================================
 const updateItem = async (req, res) => {
   const { id } = req.params;
-  const { title, description } = req.body; // NOTA: Podríamos añadir offer_type aquí en el futuro
+  const { title, description } = req.body;
   try {
     const { data: item, error: findError } = await supabase.from('items').select('owner_id').eq('id', id).single();
     if (findError || !item) {
@@ -110,7 +115,7 @@ const updateItem = async (req, res) => {
 };
 
 //================================================
-// ELIMINAR UN ARTÍCULO (SIN CAMBIOS)
+// ELIMINAR UN ARTÍCULO (PROTEGIDO)
 //================================================
 const deleteItem = async (req, res) => {
   const { id } = req.params;
@@ -131,7 +136,7 @@ const deleteItem = async (req, res) => {
 };
 
 //================================================
-// BÚSQUEDA GEOGRÁFICA (SIN CAMBIOS)
+// BÚSQUEDA GEOGRÁFICA
 //================================================
 const searchNearbyItems = async (req, res) => {
   const { lat, lon, dist } = req.query;
@@ -152,7 +157,7 @@ const searchNearbyItems = async (req, res) => {
 };
 
 //================================================
-// EXPORTS (SIN CAMBIOS)
+// EXPORTS
 //================================================
 module.exports = {
   getItems,
