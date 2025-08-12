@@ -1,6 +1,6 @@
 // src/pages/HomePage.js
 
-import React, { useState, useEffect, useCallback } from 'react'; // <--- CORREGIDO
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from '../api/axiosConfig';
 import { Link as RouterLink } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
@@ -107,21 +107,11 @@ const HomePage = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ mb: { xs: 2, sm: 0 } }}>
-          Explora Artículos
-        </Typography>
-        <FormControlLabel
-          control={<Switch checked={searchNearby} onChange={handleNearbyToggle} />}
-          label="Mostrar solo cercanos"
-        />
-      </Box>
-
-      {/* --- NUEVA Y MEJORADA HERO SECTION --- */}
+      {/* --- SECCIÓN DE BIENVENIDA (AHORA ARRIBA Y MÁS PEQUEÑA) --- */}
       <Paper 
         elevation={4} 
         sx={{ 
-          padding: { xs: 3, md: 6 }, 
+          padding: { xs: 2, md: 3 }, // Padding reducido
           marginBottom: 4, 
           borderRadius: '16px',
           color: '#fff',
@@ -129,11 +119,11 @@ const HomePage = () => {
           textAlign: 'center',
         }}
       >
-        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-          Bienvenido a NexoK
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}> {/* Tamaño reducido */}
+          Bienvenido/a a NexoK
         </Typography>
-        <Typography variant="h6" component="p" sx={{ mb: 3, maxWidth: '700px', mx: 'auto', fontWeight: 300 }}>
-          La plataforma comunitaria para dar y recibir. Conecta, dale una segunda vida a los objetos y fomenta un estilo de vida sostenible.
+        <Typography variant="body1" component="p" sx={{ mb: 3, maxWidth: '700px', mx: 'auto', fontWeight: 300 }}> {/* Tamaño reducido */}
+          La plataforma comunitaria para dar y recibir. Conecta con tus vecinos, dale una segunda vida a los objetos y fomenta un estilo de vida sostenible.
         </Typography>
         
         {!isAuthenticated && (
@@ -155,8 +145,22 @@ const HomePage = () => {
           </Button>
         )}
       </Paper>
-      {/* ------------------------------------------- */}
+      {/* -------------------------------------------------------- */}
 
+
+      {/* --- TÍTULO Y SWITCH (AHORA DEBAJO DE LA BIENVENIDA) --- */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
+        <Typography variant="h4" component="h2" gutterBottom sx={{ mb: { xs: 2, sm: 0 } }}>
+          Explora Artículos
+        </Typography>
+        <FormControlLabel
+          control={<Switch checked={searchNearby} onChange={handleNearbyToggle} />}
+          label="Mostrar solo cercanos"
+        />
+      </Box>
+      {/* ---------------------------------------------------- */}
+      
+      
       <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={selectedCategory} onChange={handleCategoryChange} aria-label="categorías de artículos" variant="scrollable" scrollButtons="auto">
           <Tab label="Todos" value="todos" />
