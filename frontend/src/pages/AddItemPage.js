@@ -1,16 +1,19 @@
 // src/pages/AddItemPage.js
-
 import React, { useState } from 'react';
-import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
+import axios from '../api/axiosConfig'; // Asegúrate de usar la instancia configurada
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
-// Importamos más componentes de MUI
-import { Button, TextField, Box, Typography, Container, Alert, Link, CssBaseline, CircularProgress } from '@mui/material';
+// Importamos los componentes necesarios de MUI, incluyendo Select, MenuItem, etc.
+import { 
+  Button, TextField, Box, Typography, Container, Alert, Link, 
+  CssBaseline, CircularProgress, Select, MenuItem, InputLabel, FormControl 
+} from '@mui/material';
 
 const AddItemPage = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [offerType, setOfferType] = useState(''); // <-- 1. NUEVO ESTADO PARA EL TIPO DE OFERTA
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,23 +37,21 @@ const AddItemPage = () => {
     }
 
     try {
-      // --- CAMBIO 2: URL relativa ---
+      // PASO 1: Crear el artículo, AHORA INCLUYENDO EL offer_type
       const itemResponse = await axios.post('/items', {
         title,
         description,
+        offer_type: offerType, // <-- 2. AÑADIMOS EL DATO A LA PETICIÓN
       });
 
       const newItemId = itemResponse.data.id;
 
+      // PASO 2: Si hay una imagen, subirla (sin cambios)
       if (imageFile) {
         const formData = new FormData();
         formData.append('image', imageFile);
-
-        // --- CAMBIO 2: URL relativa ---
         await axios.post(`/upload/item/${newItemId}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
       
@@ -58,7 +59,8 @@ const AddItemPage = () => {
 
     } catch (err) {
       console.error('Error al crear el artículo:', err);
-      setError('Ocurrió un error inesperado al crear el artículo.');
+      // Mostramos el error específico del backend si existe
+      setError(err.response?.data?.error || 'Ocurrió un error inesperado al crear el artículo.');
     } finally {
       setLoading(false);
     }
@@ -69,7 +71,7 @@ const AddItemPage = () => {
       <CssBaseline />
       <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Typography component="h1" variant="h5">
-          Publicar un Nuevo Artículo
+          Publicar un nuevo Artículo
         </Typography>
         
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 3, width: '100%' }}>
@@ -77,17 +79,34 @@ const AddItemPage = () => {
             margin="normal" required fullWidth id="title" label="Título del Artículo"
             name="title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)}
           />
+
+          {/* --- 3. NUEVO SELECTOR PARA EL TIPO DE OFERTA --- */}
+          <FormControl fullWidth required margin="normal">
+            <InputLabel id="offer-type-label">Tipo de Oferta</InputLabel>
+            <Select
+              labelId="offer-type-label"
+              id="offer-type-select"
+              value={offerType}
+              label="Tipo de Oferta"
+              onChange={(e) => setOfferType(e.target.value)}
+            >
+              <MenuItem value="donacion">Donación</MenuItem>
+              <MenuItem value="intercambio">Intercambio</MenuItem>
+              <MenuItem value="venta">Venta</MenuItem>
+            </Select>
+          </FormControl>
+          {/* ------------------------------------------- */}
+
           <TextField
             margin="normal" fullWidth name="description" label="Descripción (opcional)"
             id="description" multiline rows={5} value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-
           <Button variant="outlined" component="label" fullWidth sx={{ mt: 2 }}>
             Seleccionar Imagen
             <input type="file" hidden onChange={handleFileChange} accept="image/png, image/jpeg" />
           </Button>
-          {imageFile && <Typography variant="body2" sx={{ mt: 1 }}>Archivo seleccionado: {imageFile.name}</Typography>}
+          {imageFile && <Typography variant="body2" sx={{ mt: 1 }}>Archivo: {imageFile.name}</Typography>}
           
           {error && <Alert severity="error" sx={{ width: '100%', mt: 2 }}>{error}</Alert>}
 
