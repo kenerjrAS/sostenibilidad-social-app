@@ -6,6 +6,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
 import { useAuth } from '../context/AuthContext';
 
+// --- IMPORTACIONES DE MUI (AHORA LIMPIAS Y CORRECTAS) ---
 import { 
   Grid, Card, CardContent, CardActionArea, Typography, Box, 
   CircularProgress, CardHeader, Avatar, CardMedia, 
@@ -15,7 +16,7 @@ import {
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 const HomePage = () => {
-  const { isAuthenticated } = useAuth(); // Obtenemos el estado de autenticación
+  const { isAuthenticated } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -117,8 +118,6 @@ const HomePage = () => {
         />
       </Box>
 
-      {/* --- HERO SECTION CONDICIONAL --- */}
-      {/* Solo se muestra si el usuario NO está autenticado */}
       {!isAuthenticated && (
         <Paper 
           elevation={4} 
@@ -155,7 +154,6 @@ const HomePage = () => {
           </Button>
         </Paper>
       )}
-      {/* ------------------------------------------- */}
 
       <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={selectedCategory} onChange={handleCategoryChange} aria-label="categorías de artículos" variant="scrollable" scrollButtons="auto">
