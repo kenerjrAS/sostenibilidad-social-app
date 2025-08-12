@@ -9,30 +9,27 @@ import {
   Grid, Card, CardContent, CardActionArea, Typography, Box, 
   CircularProgress, CardHeader, Avatar, CardMedia, 
   Switch, FormControlLabel, Alert, Tabs, Tab,
-  IconButton, Popover, TextField, RadioGroup, Radio, FormControl, FormLabel
+  Popover, TextField, RadioGroup, Radio, FormControl, FormLabel, Button // <-- Button ya estaba, solo verificamos
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 const HomePage = () => {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false); // Cambiado a false para evitar carga inicial innecesaria
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Estados para los filtros
   const [selectedCategory, setSelectedCategory] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [searchNearby, setSearchNearby] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
 
-  // Estados para el Popover (ventana de filtros)
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleFilterClick = (event) => setAnchorEl(event.currentTarget);
   const handleFilterClose = () => setAnchorEl(null);
   const open = Boolean(anchorEl);
 
-  // Función para obtener los artículos, ahora depende de todos los filtros
   const fetchItems = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -72,11 +69,9 @@ const HomePage = () => {
     }
   }, []);
 
-  // useEffect principal que decide qué cargar
   useEffect(() => {
     if (searchNearby && userLocation) {
       fetchNearbyItems(userLocation);
-      // Reseteamos otros filtros para evitar confusión
       setSelectedCategory('todos');
       setSearchTerm('');
       setSortBy('newest');
@@ -88,7 +83,6 @@ const HomePage = () => {
   const handleNearbyToggle = (event) => {
     const isChecked = event.target.checked;
     setSearchNearby(isChecked);
-
     if (isChecked && !userLocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -128,9 +122,18 @@ const HomePage = () => {
           <Tab label="Intercambios" value="intercambio" />
           <Tab label="Ventas" value="venta" />
         </Tabs>
-        <IconButton onClick={handleFilterClick} sx={{ ml: 'auto' }} aria-label="filtros avanzados">
-          <FilterListIcon />
-        </IconButton>
+        
+        {/* --- CAMBIO REALIZADO AQUÍ: DE IconButton a Button --- */}
+        <Button 
+          onClick={handleFilterClick} 
+          startIcon={<FilterListIcon />} 
+          sx={{ ml: 'auto', flexShrink: 0 }} // flexShrink evita que el botón se encoja en pantallas pequeñas
+          variant="outlined"
+          aria-label="filtros avanzados"
+        >
+          Filtro
+        </Button>
+        {/* --------------------------------------------------- */}
       </Box>
 
       <Popover
