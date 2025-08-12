@@ -1,19 +1,21 @@
 // src/pages/HomePage.js
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // <--- CORREGIDO
 import axios from '../api/axiosConfig';
 import { Link as RouterLink } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
+import { useAuth } from '../context/AuthContext';
 
 import { 
   Grid, Card, CardContent, CardActionArea, Typography, Box, 
   CircularProgress, CardHeader, Avatar, CardMedia, 
   Switch, FormControlLabel, Alert, Tabs, Tab,
-  Popover, TextField, RadioGroup, Radio, FormControl, FormLabel, Button, Paper // <-- Paper añadido
+  Popover, TextField, RadioGroup, Radio, FormControl, FormLabel, Button, Paper
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 const HomePage = () => {
+  const { isAuthenticated } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -107,7 +109,7 @@ const HomePage = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
         <Typography variant="h4" component="h1" gutterBottom sx={{ mb: { xs: 2, sm: 0 } }}>
-          Artículos Disponibles
+          Explora Artículos
         </Typography>
         <FormControlLabel
           control={<Switch checked={searchNearby} onChange={handleNearbyToggle} />}
@@ -115,24 +117,45 @@ const HomePage = () => {
         />
       </Box>
 
-      {/* --- NUEVA SECCIÓN DE BIENVENIDA --- */}
+      {/* --- NUEVA Y MEJORADA HERO SECTION --- */}
       <Paper 
-        elevation={2} 
+        elevation={4} 
         sx={{ 
-          padding: { xs: 2, md: 3 }, 
+          padding: { xs: 3, md: 6 }, 
           marginBottom: 4, 
-          backgroundColor: '#f5f5f5',
-          borderRadius: '12px'
+          borderRadius: '16px',
+          color: '#fff',
+          background: 'linear-gradient(45deg, #1976d2 30%, #21CBF3 90%)',
+          textAlign: 'center',
         }}
       >
-        <Typography variant="h5" component="h2" gutterBottom>
+        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
           Bienvenido/a a NexoK
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Una comunidad para fomentar la economía circular. Aquí puedes encontrar artículos para <strong>donación</strong>, <strong>intercambio</strong> o <strong>venta</strong>, conectando con personas cerca de ti y dándole una segunda vida a los objetos. ¡Explora, comparte y únete al movimiento!
+        <Typography variant="h6" component="p" sx={{ mb: 3, maxWidth: '700px', mx: 'auto', fontWeight: 300 }}>
+          La plataforma comunitaria para dar y recibir. Conecta con tus vecinos, dale una segunda vida a los objetos y fomenta un estilo de vida sostenible.
         </Typography>
+        
+        {!isAuthenticated && (
+          <Button 
+            component={RouterLink} 
+            to="/register" 
+            variant="contained" 
+            size="large"
+            sx={{ 
+              backgroundColor: 'white', 
+              color: 'primary.main',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#f0f0f0'
+              }
+            }}
+          >
+            Únete a la Comunidad
+          </Button>
+        )}
       </Paper>
-      {/* --------------------------------- */}
+      {/* ------------------------------------------- */}
 
       <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={selectedCategory} onChange={handleCategoryChange} aria-label="categorías de artículos" variant="scrollable" scrollButtons="auto">
