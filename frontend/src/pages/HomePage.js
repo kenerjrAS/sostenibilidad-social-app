@@ -130,10 +130,10 @@ const HomePage = () => {
         }}
       >
         <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-          Bienvenido/a a NexoK
+          Bienvenido a NexoK
         </Typography>
         <Typography variant="h6" component="p" sx={{ mb: 3, maxWidth: '700px', mx: 'auto', fontWeight: 300 }}>
-          La plataforma comunitaria para dar y recibir. Conecta con tus vecinos, dale una segunda vida a los objetos y fomenta un estilo de vida sostenible.
+          La plataforma comunitaria para dar y recibir. Conecta, dale una segunda vida a los objetos y fomenta un estilo de vida sostenible.
         </Typography>
         
         {!isAuthenticated && (
