@@ -224,12 +224,12 @@ const HomePage = () => {
                   : `https://placehold.co/600x400?text=${encodeURIComponent(item.title)}`;
                 
                 return (
-                  <Grid item key={item.id} xs={12} sm={6} md={4}>
-                    {/* --- INICIO DE LA ESTRUCTURA CORREGIDA --- */}
+                  // --- INICIO DE LA ESTRUCTURA CORREGIDA Y ROBUSTA ---
+                  <Grid item key={item.id} xs={12} sm={6} md={4} sx={{ display: 'flex' }}>
                     <Card sx={{ 
-                      height: '100%',
                       display: 'flex', 
-                      flexDirection: 'column'
+                      flexDirection: 'column',
+                      width: '100%'
                     }}>
                       <CardActionArea component={RouterLink} to={`/item/${item.id}`} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
                         <CardMedia 
@@ -262,8 +262,8 @@ const HomePage = () => {
                         </CardContent>
                       </CardActionArea>
                     </Card>
-                    {/* --- FIN DE LA ESTRUCTURA CORREGIDA --- */}
                   </Grid>
+                  // --- FIN DE LA ESTRUCTURA CORREGIDA ---
                 );
               })}
             </Grid>
