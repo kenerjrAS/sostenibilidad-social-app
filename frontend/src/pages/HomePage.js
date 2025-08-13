@@ -107,6 +107,7 @@ const HomePage = () => {
 
   return (
     <Box>
+      {/* --- SECCIÓN DE BIENVENIDA (SE MANTIENE ARRIBA) --- */}
       {!isAuthenticated && (
         <Paper 
           elevation={4} 
@@ -123,7 +124,7 @@ const HomePage = () => {
             Bienvenido/a a NexoK
           </Typography>
           <Typography variant="body1" component="p" sx={{ mb: 3, maxWidth: '700px', mx: 'auto', fontWeight: 300 }}>
-            La plataforma comunitaria para dar y recibir. Conecta con tus vecinos, dale una segunda vida a los objetos y fomenta un estilo de vida sostenible.
+            La plataforma comunitaria para dar y recibir. Conecta, dale una segunda vida a los objetos y fomenta un estilo de vida sostenible.
           </Typography>
           <Button 
             component={RouterLink} 
@@ -143,7 +144,10 @@ const HomePage = () => {
           </Button>
         </Paper>
       )}
+      {/* -------------------------------------------------------- */}
 
+
+      {/* --- TÍTULO Y SWITCH (AHORA DEBAJO DE LA BIENVENIDA) --- */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
         <Typography variant="h4" component="h2" gutterBottom sx={{ mb: { xs: 2, sm: 0 } }}>
           Explora Artículos
@@ -153,6 +157,8 @@ const HomePage = () => {
           label="Mostrar solo cercanos"
         />
       </Box>
+      {/* ---------------------------------------------------- */}
+      
       
       <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={selectedCategory} onChange={handleCategoryChange} aria-label="categorías de artículos" variant="scrollable" scrollButtons="auto">
@@ -224,46 +230,23 @@ const HomePage = () => {
                   : `https://placehold.co/600x400?text=${encodeURIComponent(item.title)}`;
                 
                 return (
-                  // --- INICIO DE LA ESTRUCTURA CORREGIDA Y ROBUSTA ---
-                  <Grid item key={item.id} xs={12} sm={6} md={4} sx={{ display: 'flex' }}>
-                    <Card sx={{ 
-                      display: 'flex', 
-                      flexDirection: 'column',
-                      width: '100%'
-                    }}>
-                      <CardActionArea component={RouterLink} to={`/item/${item.id}`} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
-                        <CardMedia 
-                          component="img" 
-                          sx={{ height: 150 }} 
-                          image={imageUrl} 
-                          alt={item.title} 
-                        />
+                  <Grid item key={item.id} xs={12} sm={6} md={4}>
+                    <CardActionArea component={RouterLink} to={`/item/${item.id}`} sx={{ height: '100%' }}>
+                      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <CardMedia component="img" sx={{ height: 150 }} image={imageUrl} alt={item.title} />
                         <CardHeader
                           avatar={ <Avatar sx={{ bgcolor: 'primary.main' }}>{item.title ? item.title[0].toUpperCase() : '?'}</Avatar> }
-                          title={ 
-                            <Typography variant="h6" component="div" noWrap>
-                              {item.title}
-                            </Typography> 
-                          }
+                          title={ <Typography variant="h6" component="div" noWrap>{item.title}</Typography> }
                           subheader={`Publicado: ${new Date(item.created_at).toLocaleDateString()}`}
-                          sx={{ width: '100%', pt: 2, pb: 0 }}
                         />
-                        <CardContent sx={{ 
-                          flexGrow: 1
-                        }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ 
-                              display: '-webkit-box',
-                              overflow: 'hidden',
-                              WebkitBoxOrient: 'vertical',
-                              WebkitLineClamp: 3,
-                            }}>
+                        <CardContent sx={{ flexGrow: 1, pt: 0 }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ display: '-webkit-box', overflow: 'hidden', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2 }}>
                             {item.description || "Sin descripción"}
                           </Typography>
                         </CardContent>
-                      </CardActionArea>
-                    </Card>
+                      </Card>
+                    </CardActionArea>
                   </Grid>
-                  // --- FIN DE LA ESTRUCTURA CORREGIDA ---
                 );
               })}
             </Grid>
