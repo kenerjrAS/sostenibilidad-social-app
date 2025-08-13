@@ -15,7 +15,7 @@ import {
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 const HomePage = () => {
-  const { isAuthenticated } = useAuth(); // Obtenemos el estado de autenticación
+  const { isAuthenticated } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -107,18 +107,7 @@ const HomePage = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ mb: { xs: 2, sm: 0 } }}>
-          Explora Artículos
-        </Typography>
-        <FormControlLabel
-          control={<Switch checked={searchNearby} onChange={handleNearbyToggle} />}
-          label="Mostrar solo cercanos"
-        />
-      </Box>
-
-      {/* --- HERO SECTION CONDICIONAL --- */}
-      {/* Solo se muestra si el usuario NO está autenticado */}
+      {/* --- SECCIÓN DE BIENVENIDA (SE MANTIENE ARRIBA) --- */}
       {!isAuthenticated && (
         <Paper 
           elevation={4} 
@@ -132,10 +121,10 @@ const HomePage = () => {
           }}
         >
           <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Bienvenido a NexoK
+            Bienvenido/a a NexoK
           </Typography>
           <Typography variant="body1" component="p" sx={{ mb: 3, maxWidth: '700px', mx: 'auto', fontWeight: 300 }}>
-            La plataforma comunitaria para dar y recibir. Conecta, dale una segunda vida a los objetos y fomenta un estilo de vida sostenible.
+            La plataforma comunitaria para dar y recibir. Conecta con tus vecinos, dale una segunda vida a los objetos y fomenta un estilo de vida sostenible.
           </Typography>
           <Button 
             component={RouterLink} 
@@ -155,8 +144,22 @@ const HomePage = () => {
           </Button>
         </Paper>
       )}
-      {/* ------------------------------------------- */}
+      {/* -------------------------------------------------------- */}
 
+
+      {/* --- TÍTULO Y SWITCH (AHORA DEBAJO DE LA BIENVENIDA) --- */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
+        <Typography variant="h4" component="h2" gutterBottom sx={{ mb: { xs: 2, sm: 0 } }}>
+          Explora Artículos
+        </Typography>
+        <FormControlLabel
+          control={<Switch checked={searchNearby} onChange={handleNearbyToggle} />}
+          label="Mostrar solo cercanos"
+        />
+      </Box>
+      {/* ---------------------------------------------------- */}
+      
+      
       <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={selectedCategory} onChange={handleCategoryChange} aria-label="categorías de artículos" variant="scrollable" scrollButtons="auto">
           <Tab label="Todos" value="todos" />
