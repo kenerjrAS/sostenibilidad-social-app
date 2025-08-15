@@ -5,6 +5,7 @@ import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import axios from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
 
+// Importaciones de MUI
 import { Box, Typography, Button, CircularProgress, Alert, Paper, Stack, Divider, CardMedia, Link } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -46,12 +47,15 @@ const ItemDetailsPage = () => {
     }
   };
   
+  // --- FUNCIÓN DE CONTACTO CON NAVEGACIÓN INSTANTÁNEA ---
   const handleContactOwner = () => {
     if (!isAuthenticated || !user || !item || !item.owner_id) {
         setError("Debes iniciar sesión para contactar al dueño.");
         return;
     }
 
+    // Navegamos a nuestra página de carga intermedia, pasándole los datos
+    // que necesitará para crear la conversación.
     navigate('/chat/new', { 
       state: { 
         otherUserId: item.owner_id, 
@@ -81,19 +85,12 @@ const ItemDetailsPage = () => {
       </Button>
       <Paper elevation={3} sx={{ padding: { xs: 2, md: 4 }, borderRadius: '12px' }}>
         {item.images && item.images.length > 0 && (
-          // --- INICIO DEL CAMBIO ---
           <CardMedia
             component="img"
-            sx={{ 
-              height: { xs: 200, md: 350 }, 
-              borderRadius: '8px', 
-              mb: 4,
-              objectFit: "contain" // Muestra la imagen completa sin recortar
-            }}
+            sx={{ height: { xs: 200, md: 350 }, borderRadius: '8px', mb: 4 }}
             image={item.images[0]}
             alt={item.title}
           />
-          // --- FIN DEL CAMBIO ---
         )}
         <Typography variant="h3" component="h1" gutterBottom>
           {item.title}
