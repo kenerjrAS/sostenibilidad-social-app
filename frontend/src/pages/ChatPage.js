@@ -1,8 +1,8 @@
 // src/pages/ChatPage.js
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from '../api/axiosConfig'; // <-- CAMBIO 1: Importamos nuestra instancia configurada
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import axios from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 
@@ -10,46 +10,72 @@ import { Box, TextField, Button, Paper, List, ListItem, ListItemText, CircularPr
 import SendIcon from '@mui/icons-material/Send';
 
 const ChatPage = () => {
-  const { conversationId } = useParams();
+  const { conversationId: predictableId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { socket } = useSocket();
 
+  const [dbConversationId, setDbConversationId] = useState(null); // El ID real de la conversación en la BD
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef(null); // Ref para hacer scroll automático
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // useEffect para iniciar el chat y cargar el historial de mensajes
   useEffect(() => {
-    if (conversationId && socket && user) {
-      setLoading(true);
-      const fetchMessages = async () => {
-        try {
-          // --- CAMBIO 2: URL relativa ---
-          const response = await axios.get(`/conversations/${conversationId}/messages`);
-          setMessages(response.data);
-        } catch (err) {
-          console.error("Error al cargar mensajes:", err);
-          setError('No se pudo cargar el historial del chat.');
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchMessages();
+    // Si no recibimos el 'state' de la navegación, es un acceso inválido
+    if (!location.state) {
+      setError("No se puede acceder al chat directamente. Por favor, inícialo desde la página de un artículo.");
+      setLoading(false);
+      return; // Detenemos la ejecución
+    }
 
-      socket.emit('join_conversation', conversationId);
+    const setupAndFetch = async () => {
+      setLoading(true);
+      try {
+        const { participantIds, itemId } = location.state;
+
+        // 1. Llamamos al nuevo endpoint para asegurar que la conversación exista en la BD
+        const convResponse = await axios.post('/conversations/ensure', {
+          participantIds,
+          itemId
+        });
+        
+        const actualConvId = convResponse.data.id;
+        setDbConversationId(actualConvId); // Guardamos el ID real que nos dio el backend
+
+        // 2. Cargamos los mensajes de esa conversación usando el ID real
+        const messagesResponse = await axios.get(`/conversations/${actualConvId}/messages`);
+        setMessages(messagesResponse.data);
+        
+        // 3. Nos unimos a la sala de socket.io con el ID real
+        if(socket) {
+          socket.emit('join_conversation', actualConvId);
+        }
+
+      } catch (err) {
+        setError('No se pudo cargar el chat. Intenta de nuevo.');
+        console.error("Error al iniciar o cargar el chat:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user && socket) {
+      setupAndFetch();
     } else if (!user) {
         setError("Debes iniciar sesión para ver los chats.");
         setLoading(false);
-    } else {
-        setLoading(false);
     }
-  }, [conversationId, socket, user]);
+  }, [predictableId, user, socket, location.state, navigate]);
 
+  // useEffect para escuchar los mensajes que llegan en tiempo real
   useEffect(() => {
     if (socket) {
       const handleReceiveMessage = (receivedMessage) => {
@@ -62,15 +88,17 @@ const ChatPage = () => {
     }
   }, [socket]);
 
+  // useEffect para hacer scroll automático cuando la lista de mensajes cambia
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  // Función para manejar el envío de un nuevo mensaje
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (newMessage.trim() && socket && user) {
+    if (newMessage.trim() && socket && user && dbConversationId) {
       socket.emit('send_message', {
-        conversationId,
+        conversationId: dbConversationId, // Usamos el ID real de la BD
         senderId: user.id,
         content: newMessage,
       });
