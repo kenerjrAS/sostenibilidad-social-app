@@ -1,4 +1,4 @@
-// server.js (VERSIÓN MONOLÍTICA CON CORS FINAL Y ROBUSTA)
+// server.js (VERSIÓN MONOLÍTICA CON NUEVA RUTA DE CHAT)
 
 const express = require('express');
 const http = require('http');
@@ -21,38 +21,36 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// --- 3. CONFIGURACIÓN DE CORS FINAL Y A PRUEBA DE FALLOS ---
+// --- 3. CONFIGURACIÓN DE CORS ---
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://sostenibilidad-social-app.pages.dev' // La URL de tu frontend
+  'https://sostenibilidad-social-app.pages.dev',
+  'https://nexok.pages.dev' // Añadimos la nueva URL de NexoK
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Permitir peticiones sin 'origin' (como Postman o apps móviles)
-    // O si el 'origin' está en nuestra lista de dominios permitidos
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      console.error(`CORS ha bloqueado el origen no permitido: ${origin}`);
       callback(new Error('Origen no permitido por CORS'));
     }
   },
-  credentials: true, // ¡CRUCIAL! Permite el envío de cabeceras de autorización y cookies
+  credentials: true,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
 
 // --- 4. MIDDLEWARES GLOBALES ---
-app.use(cors(corsOptions)); // Usamos la configuración explícita y robusta de CORS
+app.use(cors(corsOptions));
 app.use(express.json());
 
 
 // --- 5. CONFIGURACIÓN DE SOCKET.IO ---
 const io = new Server(server, {
   cors: { 
-    origin: allowedOrigins, // Socket.io también usará nuestra lista de orígenes permitidos
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -61,33 +59,34 @@ const io = new Server(server, {
 
 // --- 6. RUTA RAÍZ DE BIENVENIDA ---
 app.get('/', (req, res) => {
-  res.send('¡Bienvenido a la API de Sostenibilidad Social! El servidor está funcionando.');
+  res.send('¡Bienvenido a la API de NexoK! El servidor está funcionando.');
 });
 
 
 // --- 7. DEFINIMOS TODAS LAS RUTAS DE LA API ---
 console.log("==> Registrando rutas de la API de forma monolítica...");
 
-// Auth Routes
+// --- Auth Routes ---
 app.post('/api/auth/register', authController.registerUser);
 app.post('/api/auth/login', authController.loginUser);
 app.post('/api/auth/forgot-password', authController.forgotPassword);
 
-// Profile Routes
+// --- Profile Routes ---
 app.put('/api/profiles/me', protect, profileController.updateMyProfile);
 app.get('/api/profiles/:id', profileController.getProfileById);
 app.get('/api/profiles/:id/items', profileController.getItemsByUserId);
 
-// Conversation Routes
-app.post('/api/conversations', protect, conversationController.getOrCreateConversation);
+// --- Conversation Routes (ACTUALIZADAS) ---
+app.post('/api/conversations', protect, conversationController.getOrCreateConversation); // Ruta original, la mantenemos por si acaso
 app.get('/api/conversations/:conversationId/messages', protect, conversationController.getMessagesByConversationId);
+app.post('/api/conversations/ensure', protect, conversationController.ensureConversationExists); // <-- NUEVA RUTA PARA EL FLUJO ASÍNCRONO
 
-// Upload Routes
+// --- Upload Routes (con configuración de multer) ---
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 app.post('/api/upload/item/:itemId', protect, upload.single('image'), uploadController.uploadItemImage);
 
-// Item Routes
+// --- Item Routes ---
 app.get('/api/items/search/nearby', itemController.searchNearbyItems);
 app.post('/api/items', protect, itemController.createItem);
 app.get('/api/items', itemController.getItems);

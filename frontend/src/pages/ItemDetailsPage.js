@@ -5,7 +5,6 @@ import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import axios from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
 
-// Importaciones de MUI
 import { Box, Typography, Button, CircularProgress, Alert, Paper, Stack, Divider, CardMedia, Link } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -47,20 +46,25 @@ const ItemDetailsPage = () => {
     }
   };
   
-  // --- FUNCIÓN DE CONTACTO CON NAVEGACIÓN INSTANTÁNEA ---
+  // --- FUNCIÓN ACTUALIZADA PARA NAVEGACIÓN INSTANTÁNEA ---
   const handleContactOwner = () => {
-    if (!isAuthenticated || !user || !item || !item.owner_id) {
-        setError("Debes iniciar sesión para contactar al dueño.");
+    if (!user || !item?.owner_id) {
+        setError("No se puede iniciar el chat, falta información.");
         return;
     }
 
-    // Navegamos a nuestra página de carga intermedia, pasándole los datos
-    // que necesitará para crear la conversación.
-    navigate('/chat/new', { 
-      state: { 
-        otherUserId: item.owner_id, 
-        itemId: item.id 
-      } 
+    // 1. Ordenamos los IDs para que la conversación sea la misma sin importar quién la inicie
+    const participants = [user.id, item.owner_id].sort();
+    
+    // 2. Creamos un ID único y predecible para la URL
+    const predictableConversationId = `chat-${participants[0]}-${participants[1]}-${item.id}`;
+
+    // 3. Navegamos INMEDIATAMENTE, pasando los datos necesarios a través del 'state'
+    navigate(`/chat/${predictableConversationId}`, { 
+      state: {
+        participantIds: participants,
+        itemId: item.id
+      }
     });
   };
 
