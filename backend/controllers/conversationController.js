@@ -2,7 +2,6 @@
 const supabase = require('../config/supabaseClient');
 
 const getOrCreateConversation = async (req, res) => {
-    // Esta función la mantendremos por si la necesitamos en el futuro, pero no la usaremos ahora
     const { otherUserId, itemId } = req.body;
     const currentUserId = req.user.id;
     if (!otherUserId || !itemId) {
@@ -27,19 +26,12 @@ const getOrCreateConversation = async (req, res) => {
     }
 };
 
-const getMessagesByConversationId = async (req, res) => {
-    // ... tu lógica existente para obtener mensajes
-};
-
-// --- NUEVA FUNCIÓN PARA EL FLUJO ASÍNCRONO ---
 const ensureConversationExists = async (req, res) => {
     const { participantIds, itemId } = req.body;
     const currentUserId = req.user.id;
-
     if (!participantIds || !itemId || !participantIds.includes(currentUserId)) {
         return res.status(400).json({ error: "Datos inválidos o insuficientes." });
     }
-        
     try {
         const { data: existing, error: findError } = await supabase.rpc('get_conversation_by_participants', {
             p_item_id: itemId,
@@ -47,17 +39,14 @@ const ensureConversationExists = async (req, res) => {
             p_user_id2: participantIds[1]
         });
         if (findError) throw findError;
-
         if (existing && existing.length > 0) {
             return res.status(200).json(existing[0]);
         }
-
         const { data: newConv, error: createError } = await supabase.rpc('create_conversation', {
             p_item_id: itemId,
             p_participants: participantIds
         });
         if (createError) throw createError;
-
         res.status(201).json(newConv[0]);
     } catch (error) {
         console.error("Error en ensureConversationExists:", error);
@@ -65,8 +54,44 @@ const ensureConversationExists = async (req, res) => {
     }
 };
 
+// --- FUNCIÓN MODIFICADA PARA LA PRUEBA ---
+const getMessagesByConversationId = async (req, res) => {
+  const { conversationId } = req.params;
+  const currentUserId = req.user.id;
+
+  try {
+    // Verificamos primero que el usuario actual sea participante de la conversación
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .select('participant_ids')
+      .eq('id', conversationId)
+      .single();
+    
+    if (convError || !conversation) {
+      return res.status(404).json({ error: "Conversación no encontrada." });
+    }
+    
+    if (!conversation.participant_ids.includes(currentUserId)) {
+      return res.status(403).json({ error: "No tienes permiso para ver estos mensajes." });
+    }
+
+    // --- CAMBIO REALIZADO AQUÍ ---
+    // Hemos simplificado la consulta para no incluir el JOIN a 'profiles'
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*') // ¡Ya no pedimos 'profiles ( username )'!
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
     getOrCreateConversation,
     getMessagesByConversationId,
-    ensureConversationExists // <-- La exportamos
+    ensureConversationExists,
 };
